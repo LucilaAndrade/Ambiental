@@ -1,14 +1,752 @@
-{
-  "posts": [
-    { "id": 1, "title": "Post 1" },
-    { "id": 2, "title": "Post 2" },
-    { "id": 3, "title": "Post 3" }
-  ],
-  "comments": [
-    { "id": 1, "body": "some comment", "postId": 1 },
-    { "id": 2, "body": "some comment", "postId": 1 }
-  ],
-  "profile": {
-    "name": "typicode"
-  }
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#define CLEAR system("clear");
+struct fecha {
+    int day;
+    int month;
+    int year;
+};
+
+struct renta {
+    char nombre[50];
+    char telefono[20];
+    double kilometraje;
+    struct fecha fechaDeRenta;
+
+};
+struct automovil {
+    char numeroDePlacas[10];//unico e irrepetible
+    char color[10];
+    char marca[30];
+    char modelo[30];
+    int year;
+    double kilometraje;
+    int estado;//0 renta o 1 disponible
+    int conteo;
+    struct renta historial[100];
+};
+
+int alta(struct automovil automoviles[100], int *tope);
+
+int consultaGeneral(struct automovil automoviles[100], int tope);
+
+int consultaEnRenta(struct automovil automoviles[100], int tope);
+
+int consultaHistorial(struct automovil automoviles[100], int index);
+
+int consultaOrdenadaPorKm(struct automovil automoviles[100], int tope);
+
+int modificacion(struct automovil automoviles[100], int tope, int id);
+
+int eliminar(struct automovil automoviles[100], int *tope, int id);
+
+int rentarAutomovil(struct automovil automoviles[100], int tope, int id);
+
+int devolverAutomovil(struct automovil automoviles[100], int tope, int id);
+
+int StringIsAlnum(char string[]);
+
+int LeerEnteroPositivo(char mensaje[], int *numero);
+
+int LeerFlotantePositivo(char mensaje[], double *numero);
+
+int LeerCadena(int lenght, char mensaje[], char cadena[]);
+
+int ElegirEstado(int *eleccion);
+
+int buscarPlaca(struct automovil automoviles[100], int tope, char placaBuscada[10]);
+
+void ordenamientoBurbuja(struct automovil automoviles[100], int tope);
+
+int main() {
+    struct automovil automoviles[100];
+    int op;
+    int op2;
+    int tope = 0;
+    char placa[10];
+    int index;
+    char estado[15];
+////DELETE LATER
+
+
+    strcpy(automoviles[tope].numeroDePlacas, "LOBO23");
+    strcpy(automoviles[tope].color, "ROJO");
+    strcpy(automoviles[tope].marca, "OLDSMOBILE");
+    strcpy(automoviles[tope].modelo, "BRAVADA");
+    automoviles[tope].kilometraje = 10000.54;
+    automoviles[tope].year = 1998;
+    automoviles[tope].estado = 1;
+    (tope)++;
+
+    strcpy(automoviles[tope].numeroDePlacas, "DRT234RGH");
+    strcpy(automoviles[tope].color, "VERDE");
+    strcpy(automoviles[tope].marca, "FORD");
+    strcpy(automoviles[tope].modelo, "F150");
+    automoviles[tope].kilometraje = 2000;
+    automoviles[tope].year = 2001;
+    automoviles[tope].estado = 1;
+    (tope)++;
+
+    strcpy(automoviles[tope].numeroDePlacas, "Z445TML4");
+    strcpy(automoviles[tope].color, "AZUL");
+    strcpy(automoviles[tope].marca, "FORD");
+    strcpy(automoviles[tope].modelo, "FIESTA");
+    automoviles[tope].kilometraje = 20;
+    automoviles[tope].year = 2020;
+    automoviles[tope].estado = 1;
+    (tope)++;
+    ////////////
+    while (op != 7) {
+        CLEAR
+        printf("Seleccione una opción\n"
+               "[1]...Alta\n"
+               "[2]...Consulta\n"
+               "[3]...Modificar\n"
+               "[4]...Eliminar\n"
+               "[5]...Rentar\n"
+               "[6]...Devolver\n"
+               "[7]...Salir\n");
+        scanf("%d", &op);
+        switch (op) {
+            case 1:
+                CLEAR
+                switch (alta(automoviles, &tope)) {
+                    case -1://CLAVE REPETIDA
+                        printf("El numero de placa ingresado fue registrado con anterioridad\n");
+                        break;
+                    case -11://codigo CLAVE VACIA
+                    case -12://codigo CLAVE NO ALFANUMERICA
+                        printf("El numero de placa ingresado no es valido\n");
+                        break;
+
+                    case -21://codigo COLOR VACIO
+                    case -22://codigo COLOR NO ALFABETICO
+                        printf("El color no es valido\n");
+                        break;
+
+                    case -31://codigo MARCA VACIA
+                    case -32://codigo MARCA NO ALFABETICA
+                        printf("La marca no es valida\n");
+                        break;
+
+                    case -41://codigo MODELO VACIO
+                    case -42://codigo MODELO NO ALFANUMÉRICO
+                        printf("EL modelo no es válido\n");
+                        break;
+
+                    case -52:
+                    case -51:
+                        printf("Año no valido\n");//codigo YEAR NEGATIVO
+                        break;
+
+                    case -61:
+                        printf("Kilometraje no valido\n");//codigo KILOMETRAJE NEGATIVO
+                        break;
+
+                    case -71:
+                        printf("Estado no valido\n");//codigo ESTADO ERRONEO
+                        break;
+                }
+                break;
+            case 2://CONSULTA
+                printf("Seleccione una opción de consulta\n"
+                       "[1]...General\n"
+                       "[2]...Historial de vehiculo\n"
+                       "[3]...Especifica\n"
+                       "[4]...Vehiculos en renta\n"
+                );
+                scanf("%d", &op2);
+                switch (op2) {
+                    case 1:
+                        consultaGeneral(automoviles, tope);
+                        break;
+                    case 2:
+                        LeerCadena(10, "Ingrese en numero de placa del automovil: ", placa);
+                        index = buscarPlaca(automoviles, tope, placa);
+                        if (index > -1) {
+                            if (consultaHistorial(automoviles, index) == 0) {
+                                printf("El auto no cuenta con ningun historial\n");
+                            }
+                        } else { printf("La placa %s no ha sido registrada\n", placa); }
+                        break;
+                    case 3:
+                        LeerCadena(10, "Ingrese en numero de placa del automovil: ", placa);
+                        index = buscarPlaca(automoviles, tope, placa);
+                        if (index > -1) {
+                            if (0 == automoviles[index].estado) {
+                                strcpy(estado, "En renta");
+                            } else { strcpy(estado, "Disponible"); }
+                            printf("%d. Placa:%s Marca:%s Modelo: %s Año: %d Color: %s KM: %.2f Estado:%s\n", index,
+                                   automoviles[index].numeroDePlacas, automoviles[index].marca,
+                                   automoviles[index].modelo,
+                                   automoviles[index].year, automoviles[index].color, automoviles[index].kilometraje,
+                                   estado);
+                        } else { printf("La clave %s no ha sido registrada\n", placa); }
+                        break;
+                    case 4:
+                        if (consultaEnRenta(automoviles, tope) == 0) {
+                            printf("No se encontraron vehiculos en renta\n");
+                        }
+                        break;
+                    case 5:
+                        consultaOrdenadaPorKm(automoviles, tope);
+                        break;
+                }
+                break;
+            case 3:
+                LeerCadena(10, "Ingrese el numero de placa del automovil: ", placa);
+                index = buscarPlaca(automoviles, tope, placa);
+                if (index > -1) {
+                    switch (modificacion(automoviles, tope, index)) {
+                        case 0:
+                            printf("No se aplicaron cambios\n");
+                            break;
+                        case 1:
+                            printf("Cambios aplicados exitosamente\n");
+                            break;
+
+                        case -21://codigo COLOR VACIO
+                        case -22://codigo COLOR NO ALFABETICO
+                            printf("El color no es valido\n");
+                            printf("No se aplicaron cambios\n");
+                            break;
+
+                        case -31://codigo MARCA VACIA
+                        case -32://codigo MARCA NO ALFABETICA
+                            printf("La marca no es valida\n");
+                            printf("No se aplicaron cambios\n");
+                            break;
+
+                        case -41://codigo MODELO VACIO
+                        case -42://codigo MODELO NO ALFANUMÉRICO
+                            printf("EL modelo no es válido\n");
+                            printf("No se aplicaron cambios\n");
+                            break;
+
+                        case -52://codigo YEAR FUTURO
+                        case -51://codigo YEAR NEGATIVO
+                            printf("Año no valido\n");
+                            printf("No se aplicaron cambios\n");
+                            break;
+
+                        case -81:
+                            printf("El vehiculo se encuentra en renta\n");
+                            printf("No se aplicaron cambios\n");
+                            break;
+                    }
+                } else { printf("La clave %s no ha sido registrada\n", placa); }
+                break;
+            case 4:
+                LeerCadena(10, "Ingrese en numero de placa del automovil: ", placa);
+                index = buscarPlaca(automoviles, tope, placa);
+                if (index > -1) {
+                    if (eliminar(automoviles, &tope, index) == 1) {
+                        printf("Borrado exitosamente\n");
+                    } else {
+                        printf("El vehiculo se encuentra en renta, operacion cancelada\n");
+                    }
+                } else { printf("La placa %s no ha sido registrada\n", placa); }
+                break;
+            case 5:
+                LeerCadena(10, "Ingrese en numero de placa del automovil: ", placa);
+                index = buscarPlaca(automoviles, tope, placa);
+                if (index > -1) {
+                    switch (rentarAutomovil(automoviles, tope, index)) {
+                        case 1:
+                            printf("Renta exitosa\n");
+                            break;
+                        case 0:
+                            printf("El automovil no esta disponible\n");
+                            break;
+                        case -1://codigo NOMBRE NO VALIDO
+                            printf("El nombre no es valido, ingrese solo letras y espacios\n");
+                            break;
+                        case -2://codigo TELEFONO NO VALIDO
+                            printf("El telefono no es valido, ingrese solo numeros\n");
+                            break;
+                        case -3://codigo FECHA NO VALIDA
+                            printf("La fecha no es valida\n");
+                            break;
+                    }
+                } else { printf("La placa %s no ha sido registrada\n", placa); }
+                break;
+            case 6:
+                LeerCadena(10, "Ingrese en numero de placa del automovil: ", placa);
+                index = buscarPlaca(automoviles, tope, placa);
+                if (index > -1) {
+                    switch (devolverAutomovil(automoviles, tope, index)) {
+                        case 0://codigo NO SE ENVUENTRA RENTADO
+                            printf("El vehiculo o se encuentra rentado\n");
+                            break;
+                        case -1://codigo KILOMETRAJE MENOR AL INICIAL
+                            printf("El kilometraje de entrega no puede ser menor que el inicial");
+                            break;
+                        case -2://codigo KILOMETRAJE NO VALIDO
+                            printf("El kilometraje ingresado no es valido");
+                            break;
+                        case -3://codigo TELEFONO NO COINCIDE
+                            printf("El telefono no coincide\n");
+                            break;
+                        case -4://codigo TELEFONO NO VALIDO
+                            printf("El telefono no valido\n");
+                            break;
+                        default:
+                            printf("Devolucion exitosa\n");
+                    }
+                } else { printf("La placa %s no ha sido registrada\n", placa); }
+                break;
+            case 7:
+                exit(1);
+                break;
+            default:
+                printf("Opcion no valida para el menu\n");
+                break;
+        }
+        printf("Presione enter para continuar");
+        getchar();
+        getchar();
+    }
+
+    return 0;
+}
+
+int alta(struct automovil automoviles[100], int *tope) {
+    char numeroDePlacas[10];//unico e irrepetible
+    char color[10];
+    char marca[30];
+    char modelo[30];
+    int year;
+    double kilometraje;
+    int estado;//renta o disponible
+    struct renta historial[100];
+
+    ////FASE 1. PLACA
+    if (LeerCadena(10, "Ingrese el numero de placas: ", numeroDePlacas) == 1) //Limpia el buffer ,Lee y evita vacios
+    {
+        if (StringIsAlnum(numeroDePlacas) != 3) { return -12; }//codigo PLACAS NO ALFANUMERICA
+        for (int i = 0; i < *tope; i++) {//verificar que se aunico
+            if (strcmp(numeroDePlacas, automoviles[i].numeroDePlacas) == 0) { return -1; } //codigo PLACA REPETIDA
+        }
+    } else { return -11; }//codigo PLACAS VACIAS
+
+    /////FASE 2. COLOR
+    if (LeerCadena(10, "Ingrese el color: ", color) == 1) //Limpia el buffer ,Lee y evita vacios
+    {
+        if (StringIsAlnum(color) != 1) { return -22; }//codigo COLOR NO ALFABETICO
+    } else { return -21; }//codigo COLOR VACIO
+    ////FASE 3. MARCA
+    if (LeerCadena(30, "Ingrese la marca: ", marca) == 1) //Limpia el buffer ,Lee y evita vacios
+    {
+        if (StringIsAlnum(marca) != 1) { return -32; }//codigo MARCA NO ALFABETICA
+    } else { return -31; }//codigo MARCA VACIA
+
+
+    ////FASE 4.MODELO
+    if (LeerCadena(30, "Ingrese el modelo: ", modelo) == 1) //Limpia el buffer ,Lee y evita vacios
+    {
+        if (StringIsAlnum(modelo) == 0) { return -42; }//codigo MODELO NO ALFANUMERICO
+    } else { return -41; }//codigo MODELO VACIA
+
+    ////FASE 5 YEAR
+    if (LeerEnteroPositivo("Ingrese el año: ", &year) != 0) {
+        if (year > 2020) { return -52; }//codigo YEAR FUTURO
+    } else { return -51; }//codigo YEAR NEGATIVO
+
+    ////FASE 6. KILOMETRAJE
+    if (LeerFlotantePositivo("Ingrese el kilometraje: ", &kilometraje) ==
+        0) { return -61; }//codigo KILOMETRAJE NEGATIVO
+
+    //// FASE 7. ESTADO
+    if (ElegirEstado(&estado) == 0) { return -71; }
+
+    ////FASE 8. HISTORIAL
+    //struct renta historial[100];
+
+    /////FASE 8. GUARDADO
+    strcpy(automoviles[*tope].numeroDePlacas, numeroDePlacas);
+    strcpy(automoviles[*tope].color, color);
+    strcpy(automoviles[*tope].marca, marca);
+    strcpy(automoviles[*tope].modelo, modelo);
+    automoviles[*tope].kilometraje = kilometraje;
+    automoviles[*tope].year = year;
+    automoviles[*tope].estado = estado;
+    (*tope)++;
+
+    return 1;
+}
+
+int modificacion(struct automovil automoviles[100], int tope, int id) {
+    char numeroDePlacas[10];//unico e irrepetible
+    char color[10];
+    char marca[30];
+    char modelo[30];
+    char estadoS[30];
+    int year;
+    double kilometraje;
+    int estado;//renta o disponible
+    struct renta historial[100];
+    int guardarCambios = 0;
+    int op;
+    int cambiosRealizados = 0;
+    strcpy(numeroDePlacas, automoviles[id].numeroDePlacas);
+    strcpy(color, automoviles[id].color);
+    strcpy(marca, automoviles[id].marca);
+    strcpy(modelo, automoviles[id].modelo);
+    kilometraje = automoviles[id].kilometraje;
+    year = automoviles[id].year;
+    estado = automoviles[id].estado;
+
+    while (op != 5) {
+        if (0 == automoviles[id].estado) {
+            return -90;
+        } else { strcpy(estadoS, "Disponible"); }
+
+        printf("%d. Placa:%s Marca:%s Modelo: %s Año: %d Color: %s KM: %.2f Estado:%s\n", id,
+               numeroDePlacas, marca, modelo, year, color, kilometraje, estadoS);
+
+        printf("1.Color\n"
+               "2.Marca\n"
+               "3.Modelo\n"
+               "4.Año\n"
+               "5.Salir\n"
+               "Ingrese la opcion deseada.\n");
+
+        scanf("%d", &op);
+        switch (op) {
+            case 1:
+                /////FASE 2. COLOR
+                if (LeerCadena(10, "Ingrese el color: ", color) == 1) //Limpia el buffer ,Lee y evita vacios
+                {
+                    if (StringIsAlnum(color) != 1) { return -22; }//codigo COLOR NO ALFABETICO
+                } else { return -21; }//codigo COLOR VACIO
+                break;
+            case 2:
+                ////FASE 3. MARCA
+                if (LeerCadena(30, "Ingrese la marca: ", marca) == 1) //Limpia el buffer ,Lee y evita vacios
+                {
+                    if (StringIsAlnum(marca) != 1) { return -32; }//codigo MARCA NO ALFABETICA
+                } else { return -31; }//codigo MARCA VACIA
+                break;
+            case 3:
+                ////FASE 4.MODELO
+                if (LeerCadena(30, "Ingrese el modelo: ", modelo) == 1) //Limpia el buffer ,Lee y evita vacios
+                {
+                    if (StringIsAlnum(modelo) == 0) { return -42; }//codigo MODELO NO ALFANUMERICO
+                } else { return -41; }//codigo MODELO VACIA
+                break;
+            case 4:
+                ////FASE 5 YEAR
+                if (LeerEnteroPositivo("Ingrese el año: ", &year) != 0) {
+                    if (year > 2020) { return -52; }//codigo YEAR FUTURO
+                } else { return -51; }//codigo YEAR NEGATIVO
+                break;
+            case 5:
+                break;
+            default:
+                printf("Opcion no valida\n");
+                break;
+        }
+        if (op == 5) { break; }
+        else {
+            cambiosRealizados++;
+        }
+        CLEAR
+    }
+
+    if (cambiosRealizados > 0) {
+        printf("Si desea guardar los cambios ingrese 1: ");
+        scanf("%d", &guardarCambios);
+        if (guardarCambios == 1) {
+            strcpy(automoviles[id].color, color);
+            strcpy(automoviles[id].marca, marca);
+            strcpy(automoviles[id].modelo, modelo);
+            automoviles[id].year = year;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int buscarPlaca(struct automovil automoviles[100], int tope, char placaBuscada[10]) {
+    for (int i = 0; i < tope; i++) {//verificar que se aunico
+        if (strcmp(placaBuscada, automoviles[i].numeroDePlacas) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int consultaGeneral(struct automovil automoviles[100], int tope) {
+    char estado[15];
+    for (int i = 0; i < tope; i++) {//verificar que se aunico
+        if (0 == automoviles[i].estado) {
+            strcpy(estado, "En renta");
+        } else { strcpy(estado, "Disponible"); }
+        printf("%d. Placa:%s Marca:%s Modelo: %s Año: %d Color: %s KM: %.2f Estado:%s\n", i,
+               automoviles[i].numeroDePlacas, automoviles[i].marca, automoviles[i].modelo,
+               automoviles[i].year, automoviles[i].color, automoviles[i].kilometraje, estado);
+    }
+    return 1;
+}
+
+int consultaEnRenta(struct automovil automoviles[100], int tope) {
+    char estado[15];
+    int conteo = 0;
+    for (int i = 0; i < tope; i++) {//verificar que se aunico
+        if (0 == automoviles[i].estado) {
+            strcpy(estado, "En renta");
+            printf("%d. Placa:%s Marca:%s Modelo: %s Año: %d Color: %s KM: %.2f Estado:%s\n", i,
+                   automoviles[i].numeroDePlacas, automoviles[i].marca, automoviles[i].modelo,
+                   automoviles[i].year, automoviles[i].color, automoviles[i].kilometraje, estado);
+            conteo++;
+        }
+    }
+    return conteo;
+}
+
+int consultaHistorial(struct automovil automoviles[100], int index) {
+    char estado[15];
+    if (automoviles[index].conteo > 0) {
+        if (0 == automoviles[index].estado) {
+            strcpy(estado, "En renta");
+        } else { strcpy(estado, "Disponible"); }
+        printf("%d. Placa:%s Marca:%s Modelo: %s Año: %d Color: %s KM: %.2f Estado:%s\n", index,
+               automoviles[index].numeroDePlacas, automoviles[index].marca, automoviles[index].modelo,
+               automoviles[index].year, automoviles[index].color, automoviles[index].kilometraje, estado);
+
+        for (int i = 0; i < automoviles[index].conteo; i++) {
+            printf("%d. %d/%d/%d %s Tel: %s KM:%.2f\n", i, automoviles[index].historial[i].fechaDeRenta.day,
+                   automoviles[index].historial[i].fechaDeRenta.month,
+                   automoviles[index].historial[i].fechaDeRenta.year,
+                   automoviles[index].historial[i].nombre, automoviles[index].historial[i].telefono,
+                   automoviles[index].historial[i].kilometraje);
+        }
+        return 1;
+    }
+    return 0;
+}
+
+int consultaOrdenadaPorKm(struct automovil automoviles[100], int tope) {
+    char estado[15];
+    struct automovil automovilesCopia[100];
+    for (int i = 0; i < tope; i++) {
+        automovilesCopia[i] = automoviles[i];
+    }
+    ordenamientoBurbuja(automovilesCopia, tope);
+    for (int i = 0; i < tope; i++) {//verificar que se aunico
+        if (0 == automovilesCopia[i].estado) {
+            strcpy(estado, "En renta");
+        } else { strcpy(estado, "Disponible"); }
+        printf("%d. Placa:%s Marca:%s Modelo: %s Año: %d Color: %s KM: %.2f Estado:%s\n", i,
+               automovilesCopia[i].numeroDePlacas, automovilesCopia[i].marca, automovilesCopia[i].modelo,
+               automovilesCopia[i].year, automovilesCopia[i].color, automovilesCopia[i].kilometraje, estado);
+    }
+    return 1;
+}
+
+
+void ordenamientoBurbuja(struct automovil automoviles[100], int tope) {
+    struct automovil temporal;
+    int i, j;
+    for (i = 0; i < tope - 1; i++)
+        for (j = 0; j < tope - i - 1; j++)
+            if (automoviles[j].kilometraje > automoviles[j + 1].kilometraje) {
+                temporal = automoviles[j];
+                automoviles[j] = automoviles[j + 1];
+                automoviles[j + 1] = temporal;
+            }
+}
+
+/**LEER CADENA Y VALIDARLA
+ * Permite leer una cadena y validarla
+ * @param lenght longitud esperada de la cadena
+ * @param mensaje mensaje que se mostrara pera solicitar el ingresó de la cadena
+ * @param cadena variable de ti por arreglo de caracteres donde se alamcenara la cadena leida una vez que sea validada
+ * @return 0 si la cadena no fue capturada correctamente o 1 si la cadena fue procesada con exito
+ **/
+int LeerCadena(int lenght, char mensaje[], char cadena[]) {
+    char tmp[lenght];
+    cadena[0] = tmp[0] = '\0';
+    printf("%s", mensaje);
+    while ((getchar()) != '\n');
+    scanf("%[^\n]", tmp);
+    if (strlen(tmp) > 0) {
+        strcpy(cadena, tmp);
+        return 1;
+    } else if (tmp[0] == '\0') { return -1; }
+}
+
+/**LEER ENTERO POSITIVO
+* Permite leer un numero entero y validar que sea positivo
+* @param mensaje Mensaje que se mostrara en pantalla solicitando que se ingrese el numero
+* @param numero variable donde se almacenara el numero una vez que se halla validado
+* @return 1 si el numero fue capturado y validado con exito o 0 en caso contrario
+*/
+int LeerEnteroPositivo(char mensaje[], int *numero) {
+    int n = *numero;
+    printf("%s ", mensaje);
+    scanf("%d", numero);
+    if (*numero >= 0) {
+        return 1;
+    } else {
+        *numero = n;
+        return 0;
+    }
+}
+
+int LeerFlotantePositivo(char mensaje[], double *numero) {
+    double n = *numero;
+    printf("%s ", mensaje);
+    scanf("%lf", numero);
+    if (*numero >= 0) {
+        return 1;
+    } else {
+        *numero = n;
+        return 0;
+    }
+}
+
+int LeerFecha(int *day, int *month, int *year) {
+    int d;
+    int m;
+    int y;
+    printf("%s ", "Ingrese la fecha en formato DD/MM/YYYY: ");
+    scanf("%d/%d/%d", &d, &m, &y);
+    if (y > 1769 &&
+        y < 2021) {//El francés Nicolas-Joseph Cugnot construyó un automóvil de vapor que circuló por París en 1769
+        if (m >= 1 && m <= 12) {
+            if ((d >= 1 && d <= 31) &&
+                (m == 1 || m == 3 || m == 5 || m == 7 || m == 8 || m == 10 || m == 12)) {
+                *day = d;
+                *month = m;
+                *year = y;
+                return 1;
+            } else if ((d >= 1 && d <= 30) && (m == 4 || m == 6 || m == 9 || m == 11)) {
+                *day = d;
+                *month = m;
+                *year = y;
+                return 1;
+            } else if ((d >= 1 && d <= 28) && (m == 2)) {
+                *day = d;
+                *month = m;
+                *year = y;
+                return 1;
+            } else if (d == 29 && m == 2 && (y % 400 == 0 || (y % 4 == 0 && y % 100 != 0))) {
+                *day = d;
+                *month = m;
+                *year = y;
+                return 1;
+            } else {//dia no valido
+                return -1;
+            }
+        } else {
+            return -1;//mes no valido
+        }
+    }//year no valido
+    return -1;
+}
+
+int ElegirEstado(int *eleccion) {
+    int tmp;
+    LeerEnteroPositivo(
+            "\nSeleccione un estado:\n[1]...Disponible\n[2]...En renta\n", &tmp);
+    if (tmp <= 2) {
+        *eleccion = tmp;
+        return 1;
+    } else
+        return 0;
+}
+
+//1 alfabetico
+//2 numerico
+//3 alfanumerico
+//4 alfabetico con espacios
+//0 otro
+int StringIsAlnum(char string[]) {
+    int alpha = 0;
+    int space = 0;
+    int number = 0;
+    int other = 0;
+    for (int i = 0; i < strlen(string); i++) {
+        if (isspace(string[i])) { space++; }
+        else if (isalpha(string[i])) { alpha = 1; }
+        else if (isdigit(string[i])) { number = 2; }
+        else { return 0; }
+    }
+    if ((alpha + number) == 1 && space > 0) { return 4; }
+    return (alpha + number);
+}
+
+int rentarAutomovil(struct automovil automoviles[100], int tope, int id) {
+    char nombre[50];
+    char telefono[10];
+    int tipoDeCadena;
+    int day;
+    int month;
+    int year;
+    if (automoviles[id].estado == 1) {
+        LeerCadena(50, "Ingrese el nombre: ", nombre);
+        tipoDeCadena = StringIsAlnum(nombre);
+        if (tipoDeCadena == 1 || tipoDeCadena == 4) {
+            LeerCadena(20, "Ingrese el telefono: ", telefono);
+            if (StringIsAlnum(telefono) != 2) { return -2; }//codigo TELEFONO NO VALIDO
+
+            if (LeerFecha(&automoviles[id].historial[automoviles[id].conteo].fechaDeRenta.day,
+                          &automoviles[id].historial[automoviles[id].conteo].fechaDeRenta.month,
+                          &automoviles[id].historial[automoviles[id].conteo].fechaDeRenta.year) == 1) {
+                strcpy(automoviles[id].historial[automoviles[id].conteo].nombre, nombre);
+                strcpy(automoviles[id].historial[automoviles[id].conteo].telefono, telefono);
+                automoviles[id].historial[automoviles[id].conteo].kilometraje = automoviles[id].kilometraje;
+                automoviles[id].estado = 0;
+                automoviles[id].conteo++;
+                return 1;
+            } else { return -3; }
+        } else { return -1; }//codigo NOMBRE NO VALIDO
+    } else { return 0; }//codigo NO RENTADO
+}
+
+int buscarTelefono(struct automovil automovil, int tope, char telefono[10]) {
+    for (int i = 0; i < automovil.conteo; i++) {//verificar que se aunico
+        if (strcmp(telefono, automovil.historial[i].telefono) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int devolverAutomovil(struct automovil automoviles[100], int tope, int id) {
+    char telefono[10];
+    int index;
+    double kmDeVuelta;
+    if (automoviles[id].estado == 0) {
+        LeerCadena(10, "Ingrese el telefono: ", telefono);
+        if (StringIsAlnum(telefono) != 2) { return -4; }//codigo TELEFONO NO VALIDO
+        index = buscarTelefono(automoviles[id], tope, telefono);
+        if (index > -1) {
+            if (LeerFlotantePositivo("Ingrese el kilometraje con que se devolvio el vehiculo: ", &kmDeVuelta)) {
+                if (kmDeVuelta > automoviles[id].kilometraje) {
+                    automoviles[id].estado = 1;
+                    automoviles[id].kilometraje = kmDeVuelta;
+                    return 1;
+                } else { return -1; }//codigo KILOMETRAJE MENOR AL INICIAL
+            } else { return -2; }//codigo KILOMETRAJE NO VALIDO
+        } else {
+            return -3;//codigo TELEFONO NO COINCIDE
+        }
+    } else {
+        return 0;//codigo NO SE ENVUENTRA RENTADO
+    }
+}
+
+int eliminar(struct automovil automoviles[100], int *tope, int id) {
+    if (automoviles[id].estado == 1) {
+        for (int i = id; i < *tope; i++) {//verificar que se aunico
+            automoviles[i] = automoviles[i + 1];
+        }
+        (*tope)--;
+        return 1;
+    } else { return 0; }
 }
